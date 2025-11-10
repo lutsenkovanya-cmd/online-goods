@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Товари Онлайн — Термочашки UA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { 
+      font-family: 'Roboto', sans-serif; 
+      background: url('https://images.pexels.com/photos/235605/pexels-photo-235605.jpeg?auto=compress&cs=tinysrgb&w=1920') center/cover fixed; 
+      color: #333; 
+      min-height:100vh;
+      position:relative;
+    }
+    .bg-overlay { 
+      position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.65); z-index:0;
+    }
+
+    header { 
+      position:sticky; top:0; background:#fff; border-bottom:1px solid #e0e0e0; 
+      padding:12px 20px; display:flex; justify-content:space-between; align-items:center; z-index:1000;
+      box-shadow:0 2px 8px rgba(0,0,0,0.05);
+    }
+    .logo { font-size:1.6em; font-weight:700; color:#e32d2d; }
+    .menu-btn { font-size:24px; cursor:pointer; color:#007cba; }
+    .search { flex:1; max-width:500px; margin:0 20px; }
+    .search input { width:100%; padding:10px 16px; border:1px solid #ddd; border-radius:8px; font-size:1em; }
+
+    .sidebar { 
+      position:fixed; left:-320px; top:0; width:320px; height:100%; background:#fff; 
+      transition:left 0.35s ease; z-index:999; padding:80px 20px 20px; box-shadow:2px 0 15px rgba(0,0,0,0.1);
+    }
+    .sidebar.open { left:0; }
+    .sidebar h3 { margin:0 0 20px; font-size:1.4em; color:#007cba; font-weight:500; }
+    .sidebar a { display:block; padding:14px 16px; color:#333; text-decoration:none; font-weight:500; border-radius:8px; margin:4px 0; transition:0.2s; }
+    .sidebar a:hover { background:#f0f7ff; color:#007cba; }
+    .admin-link { color:#e32d2d; font-weight:600; }
+
+    .container { max-width:1240px; margin:20px auto; padding:0 20px; position:relative; z-index:1; }
+    h2 { font-size:1.8em; margin:30px 0 20px; color:#fff; text-shadow:0 1px 3px rgba(0,0,0,0.6); text-align:center; }
+
+    .products-grid { 
+      display:grid; 
+      grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); 
+      gap:24px; 
+      padding:10px 0;
+    }
+    .product { 
+      background:#fff; border-radius:16px; overflow:hidden; 
+      transition:all 0.3s; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.1);
+    }
+    .product:hover { transform:translateY(-6px); box-shadow:0 12px 24px rgba(0,0,0,0.2); }
+    .product img { 
+      width:100%; height:220px; object-fit:cover; 
+    }
+    .product-info { padding:16px; }
+    .product h3 { font-size:1.15em; margin-bottom:8px; color:#007cba; }
+    .price { font-size:1.6em; font-weight:700; color:#e32d2d; }
+    .old-price { font-size:1em; color:#999; text-decoration:line-through; margin-left:8px; }
+    .product p { font-size:0.95em; color:#555; margin:8px 0; }
+    .btn { 
+      background:#ff6b00; color:white; padding:10px 20px; border:none; border-radius:8px; 
+      font-weight:600; cursor:pointer; transition:0.3s; margin-top:8px;
+    }
+    .btn:hover { background:#e55a00; }
+
+    /* КАРТКА ТОВАРУ */
+    .modal { 
+      display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
+      background:rgba(0,0,0,0.7); z-index:2000; justify-content:center; align-items:center;
+    }
+    .modal-content { 
+      background:#fff; width:90%; max-width:800px; border-radius:16px; overflow:hidden; 
+      display:flex; flex-direction:column; max-height:90vh;
+    }
+    .modal-header { padding:20px; background:#007cba; color:white; text-align:center; }
+    .modal-body { padding:20px; flex-grow:1; overflow-y:auto; }
+    .modal-gallery { display:flex; gap:10px; margin-bottom:20px; }
+    .modal-gallery img { width:100px; height:100px; object-fit:cover; border-radius:8px; cursor:pointer; border:2px solid #eee; }
+    .modal-gallery img.active { border-color:#007cba; }
+    .modal-main-img { width:100%; height:300px; object-fit:cover; border-radius:12px; margin-bottom:20px; }
+    .close-modal { position:absolute; top:15px; right:25px; font-size:28px; color:white; cursor:pointer; }
+
+    .admin { display:none; margin-top:30px; padding:20px; background:#f8f9fa; border-radius:12px; }
+    .admin.show { display:block; }
+    .admin input, .admin textarea { width:100%; padding:12px; margin:8px 0; border:1px solid #ddd; border-radius:8px; }
+
+    .chat-btn { 
+      position:fixed; bottom:25px; right:25px; background:#28a745; color:white; 
+      width:70px; height:70px; border-radius:50%; font-size:32px; border:none; 
+      cursor:pointer; box-shadow:0 6px 16px rgba(0,0,0,0.2); z-index:1000;
+    }
+    #chat-box { 
+      position:fixed; bottom:105px; right:25px; width:380px; height:520px; background:white; 
+      border-radius:16px; display:none; flex-direction:column; box-shadow:0 12px 32px rgba(0,0,0,0.25); 
+      z-index:1000; border:1px solid #e0e0e0; overflow:hidden;
+    }
+    #chat-header { background:#007cba; color:white; padding:16px; font-weight:500; text-align:center; }
+    #messages { flex:1; padding:16px; overflow-y:auto; background:#f8f9fa; }
+    #messages p { margin:10px 0; padding:12px 16px; border-radius:18px; max-width:80%; word-wrap:break-word; }
+    #messages p.user { background:#007cba; color:white; align-self:flex-end; border-bottom-right-radius:4px; margin-left:auto; }
+    #messages p.bot { background:#fff; color:#333; align-self:flex-start; border:1px solid #e0e0e0; border-bottom-left-radius:4px; }
+    #chat-input { display:flex; border-top:1px solid #e0e0e0; }
+    #chat-input input { flex:1; padding:16px; border:none; font-size:1em; }
+    #chat-input button { background:#007cba; color:white; border:none; padding:16px 24px; cursor:pointer; font-weight:600; }
+  </style>
+</head>
+<body>
+  <div class="bg-overlay"></div>
+
+  <header>
+    <div class="menu-btn" onclick="toggleSidebar()">Меню</div>
+    <div class="logo">Товари Онлайн</div>
+    <div class="search"><input type="text" placeholder="Пошук товарів..."></div>
+  </header>
+
+  <div class="sidebar" id="sidebar">
+    <h3>Меню</h3>
+    <a href="#" onclick="showCategory('Термочашки')">Термочашки</a>
+    <a href="#" onclick="showCategory('Горнятка')">Горнятка</a>
+    <a href="#" onclick="showCategory('Аксесуари')">Аксесуари</a>
+    <a href="#" class="admin-link" onclick="showAdmin()">Адмін</a>
+
+    <div id="admin-panel" class="admin">
+      <h3>Додати товар</h3>
+      <select id="category">
+        <option>Термочашки</option>
+        <option>Горнятка</option>
+        <option>Аксесуари</option>
+      </select>
+      <input type="text" id="name" placeholder="Назва"><br>
+      <input type="number" id="price" placeholder="Ціна"><br>
+      <input type="text" id="image" placeholder="Фото 1 (Pexels)"><br>
+      <input type="text" id="image2" placeholder="Фото 2"><br>
+      <input type="text" id="image3" placeholder="Фото 3"><br>
+      <textarea id="desc" placeholder="Опис"></textarea><br>
+      <button onclick="addProduct()">Додати</button>
+      <button onclick="logout()">Вийти</button>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 id="category-title">Термочашки</h2>
+    <div class="products-grid" id="catalog-grid"></div>
+  </div>
+
+  <!-- КАРТКА ТОВАРУ -->
+  <div class="modal" id="product-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modal-title"></h3>
+        <span class="close-modal" onclick="closeModal()">×</span>
+      </div>
+      <div class="modal-body">
+        <img id="modal-main-img" class="modal-main-img" src="">
+        <div class="modal-gallery" id="modal-gallery"></div>
+        <p id="modal-desc"></p>
+        <p class="price" id="modal-price"></p>
+        <button class="btn" onclick="order(modalProduct.name)">Купити</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Чат -->
+  <button class="chat-btn" onclick="toggleChat()">Чат</button>
+  <div id="chat-box">
+    <div id="chat-header">Онлайн-помічник</div>
+    <div id="messages">
+      <p class="bot">Привіт! Запитуй: ціна, доставка, наявність, знижки, як замовити.</p>
+    </div>
+    <div id="chat-input">
+      <input id="user-msg" placeholder="Напишіть..." onkeypress="if(event.key==='Enter') sendMsg()">
+      <button onclick="sendMsg()">Надіслати</button>
+    </div>
+  </div>
+
+  <script>
+    const ADMIN_LOGIN = "admin";
+    const ADMIN_PASS = "termo123";
+    let modalProduct = {};
+    let allProducts = JSON.parse(localStorage.getItem('allProducts')) || {
+      "Термочашки": [
+        { name: "Термочашка Alpen 500 мл", price: 450, image: "https://images.pexels.com/photos/416528/pexels-photo-416528.jpeg?w=600", image2: "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?w=600", image3: "https://images.pexels.com/photos/1458671/pexels-photo-1458671.jpeg?w=600", desc: "Нержавіюча сталь, подвійні стінки, зберігає тепло 12 годин, холод — 24 години. Герметична кришка." },
+        { name: "Термочашка Nordic 400 мл", price: 420, image: "https://images.pexels.com/photos/302899/pexels-photo-302899.jpeg?w=600", image2: "", image3: "", desc: "Компактна, легка, ідеальна для офісу. Білий колір, матове покриття." }
+      ],
+      "Горнятка": [],
+      "Аксесуари": []
+    };
+
+    function showAdmin() {
+      if (localStorage.getItem('logged') !== 'true') {
+        const login = prompt("Логін:");
+        const pass = prompt("Пароль:");
+        if (login === ADMIN_LOGIN && pass === ADMIN_PASS) {
+          localStorage.setItem('logged', 'true');
+          document.getElementById('admin-panel').classList.add('show');
+        } else {
+          alert("Неправильно!");
+          return;
+        }
+      } else {
+        document.getElementById('admin-panel').classList.add('show');
+      }
+      toggleSidebar();
+    }
+
+    function logout() {
+      localStorage.setItem('logged', 'false');
+      document.getElementById('admin-panel').classList.remove('show');
+    }
+
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+
+    function showCategory(cat) {
+      document.getElementById('category-title').textContent = cat;
+      render(allProducts[cat]);
+      toggleSidebar();
+    }
+
+    function render(products) {
+      const grid = document.getElementById('catalog-grid');
+      grid.innerHTML = '';
+      products.forEach((p, i) => {
+        grid.innerHTML += `
+          <div class="product" onclick="openModal('${p.category}', ${i})">
+            <img src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+              <h3>${p.name}</h3>
+              <div style="display:flex; align-items:center;">
+                <span class="price">${p.price} ₴</span>
+                <span class="old-price">${Math.round(p.price * 1.3)} ₴</span>
+              </div>
+              <p>${p.desc}</p>
+              <button class="btn" onclick="event.stopPropagation(); order('${p.name}')">Купити</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    function openModal(cat, index) {
+      const products = allProducts[cat];
+      modalProduct = { ...products[index], category: cat };
+      document.getElementById('modal-title').textContent = modalProduct.name;
+      document.getElementById('modal-main-img').src = modalProduct.image;
+      document.getElementById('modal-desc').textContent = modalProduct.desc;
+      document.getElementById('modal-price').textContent = modalProduct.price + ' ₴';
+
+      const gallery = document.getElementById('modal-gallery');
+      gallery.innerHTML = '';
+      [modalProduct.image, modalProduct.image2, modalProduct.image3].forEach((img, i) => {
+        if (img) {
+          const thumb = document.createElement('img');
+          thumb.src = img;
+          thumb.onclick = () => {
+            document.getElementById('modal-main-img').src = img;
+            document.querySelectorAll('.modal-gallery img').forEach(t => t.classList.remove('active'));
+            thumb.classList.add('active');
+          };
+          if (i === 0) thumb.classList.add('active');
+          gallery.appendChild(thumb);
+        }
+      });
+
+      document.getElementById('product-modal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('product-modal').style.display = 'none';
+    }
+
+    function addProduct() {
+      const cat = document.getElementById('category').value;
+      const name = document.getElementById('name').value.trim();
+      const price = document.getElementById('price').value;
+      const image = document.getElementById('image').value.trim();
+      const image2 = document.getElementById('image2').value.trim();
+      const image3 = document.getElementById('image3').value.trim();
+      const desc = document.getElementById('desc').value.trim();
+      if (name && price && image) {
+        if (!allProducts[cat]) allProducts[cat] = [];
+        allProducts[cat].push({ name, price, image, image2, image3, desc });
+        localStorage.setItem('allProducts', JSON.stringify(allProducts));
+        showCategory(cat);
+        alert("Товар додано!");
+        ['name','price','image','image2','image3','desc'].forEach(id => document.getElementById(id).value = '');
+      }
+    }
+
+    function order(item) {
+      const phone = prompt("Телефон:", "+380");
+      if (phone) alert(`Замовлення "${item}" на ${phone}. Передзвонимо!`);
+    }
+
+    // СМАРТ-ЧАТ — перевіряє наявність
+    function sendMsg() {
+      const input = document.getElementById('user-msg');
+      const msg = input.value.toLowerCase().trim();
+      if (!msg) return;
+
+      const messages = document.getElementById('messages');
+      messages.innerHTML += `<p class="user">${input.value}</p>`;
+
+      let reply = "Запитайте: ціна, доставка, наявність, знижки, як замовити.";
+
+      if (msg.includes("наявність")) {
+        const productName = msg.replace(/наявність|є|в наявності/gi, "").trim();
+        const found = Object.values(allProducts).flat().find(p => p.name.toLowerCase().includes(productName));
+        reply = found ? `Так, "${found.name}" в наявності! Ціна: ${found.price} ₴` : "На жаль, такого товару немає.";
+      } else if (msg.includes("ціна")) {
+        const productName = msg.replace(/ціна|скільки коштує/gi, "").trim();
+        const found = Object.values(allProducts).flat().find(p => p.name.toLowerCase().includes(productName));
+        reply = found ? `Ціна "${found.name}": ${found.price} ₴` : "Не знайдено.";
+      } else if (msg.includes("доставка")) {
+        reply = "Nova Poshta, 1–3 дні, 60–80 грн. Післяплата — так.";
+      } else if (msg.includes("знижка")) {
+        reply = "Купи 2 — знижка 15%. Код: UA15";
+      } else if (msg.includes("як замовити")) {
+        reply = "Натисни «Купити» → введи телефон → передзвонимо.";
+      }
+
+      setTimeout(() => {
+        messages.innerHTML += `<p class="bot">${reply}</p>`;
+        messages.scrollTop = messages.scrollHeight;
+      }, 600);
+
+      input.value = '';
+    }
+
+    function toggleChat() {
+      const chat = document.getElementById('chat-box');
+      chat.style.display = chat.style.display === 'flex' ? 'none' : 'flex';
+    }
+
+    // Початок
+    showCategory('Термочашки');
+  </script>
+</body>
+</html>
